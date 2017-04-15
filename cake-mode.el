@@ -35,22 +35,44 @@
 (setq cake-bootstrap-name "build.sh")
 (setq cake-bootstrap-url "http://cakebuild.net/download/bootstrapper/osx")
 
-(defun file-not-exist (file)
+(defun file--not-exist (file)
+  ;; check if file not exist
   (not (file-exists-p file)))
 
 (defun init-cake-build ()
+  ;; create build.cake in current directory
   (interactive)
-  (when (file-not-exist cake-build-name)
+  (when (file--not-exist cake-build-name)
     (shell-command (format "touch %s" cake-build-name))
     (message (format "created %s success" cake-build-name))))
 
 (defun init-cake-bootstrap ()
+  ;; download bootstrap file from server
   (interactive)
-  (when (file-not-exist cake-bootstrap-name)
+  (when (file--not-exist cake-bootstrap-name)
     (message (format "loading %s" cake-bootstrap-url))
     (shell-command (format "curl -Lsfo %s %s" cake-bootstrap-name cake-bootstrap-url))
     (message (format "download %s success" cake-bootstrap-url))))
 
+(defun show-cake-tasks (tasks)
+  ;; display list of available tasks
+  (interactive)
+  (completing-read "Target:" tasks nil t))
+
+(defun get-cake-tasks(file)
+  (mapcar (lambda (x) (nth 1 x))
+          (s-match-strings-all "Task(\"\\(.*\\)\")" (f-read-text file))))
+
+(defun get--cake-tasks-with-grep ()
+  ;; read list of tasks from build script
+  ;; grep -o 'Task(".*")' build.cake | sed 's/[Task("|")]//g'"
+  (interactive)
+  (setq command "grep -o 'Task(\".*\")' build.cake | sed 's/Task(\"//g; s/\")//g'")
+  (mapcar 'string-trim (split-string
+                        (string-trim (shell-command-to-string command))
+                        "\n")))
 
 (provide 'cake-mode)
+
 ;;; cake-mode.el ends here
+
