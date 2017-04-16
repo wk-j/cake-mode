@@ -104,8 +104,14 @@
 
 (ert-deftest shoud-get-tasks ()
   (should (equal
-           (get-cake-tasks "tests/build.cake")
+           (ck-get-tasks "tests/build.cake")
            '("Restore" "Build" "Test"))))
+
+
+(ert-deftest should-get-current-tasks()
+  (should (equal
+           (ck-get-tasks "./build.cake")
+           '("Run-Test"))))
 
 (ert-deftest should-one-eq-one ()
   (should (= 1 1)))

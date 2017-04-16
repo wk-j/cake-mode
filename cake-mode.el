@@ -26,51 +26,91 @@
 
 ;;; Code:
 
+(require 'cl)
+(require 'json)
+(require 'url)
+
 (defgroup cake-mode nil
   "Cake Build major mode"
   :link '(url-link "https://github.com/wk-j/cake-mode")
   :group 'languages)
 
-(setq cake-build-name "build.cake")
-(setq cake-bootstrap-name "build.sh")
-(setq cake-bootstrap-url "http://cakebuild.net/download/bootstrapper/osx")
+(setq ck-build-name "build.cake")
+(setq ck-bootstrap-name "build.sh")
+(setq ck-bootstrap-url "http://cakebuild.net/download/bootstrapper/osx")
+(setq ck-backend-url "http://localhost:9876")
+(setq ck-dot-location ".")
 
-(defun file--not-exist (file)
+
+(setq ck-params '(("currentDir") . "."))
+
+(defun ck-get-current-dir ()
+  (string-trim (shell-command-to-string "pwd")))
+
+(defun ck-update-dot-location ()
+  (interactive)
+  (progn
+    (request
+      (concat ck-backend-url "/getDotLocation")
+      :params (add-to-list 'ck-params (cons "currentDir" (ck-get-current-dir))) 
+      :parser 'json-read
+      :success(function*
+                (lambda (&key data &allow-other-keys)
+                  (progn
+                    (message "Data = %s Sucess = %s"
+                            (assoc-string 'data data)
+                            (assoc-default 'success data))
+                    (setq ck-dot-location (assoc-default 'data data))))))))
+
+(defun ck-get-dot-location ()
+  (concat ck-dot-location "/" ck-build-name))
+
+(defun ck-file-not-exist (file)
   ;; check if file not exist
   (not (file-exists-p file)))
 
-(defun init-cake-build ()
+(defun ck-init-build ()
   ;; create build.cake in current directory
   (interactive)
-  (when (file--not-exist cake-build-name)
-    (shell-command (format "touch %s" cake-build-name))
-    (message (format "created %s success" cake-build-name))))
+  (when (ck-file-not-exist ck-build-name)
+    (shell-command (format "touch %s" ck-build-name))
+    (message (format "created %s success" ck-build-name))))
 
-(defun init-cake-bootstrap ()
+(defun ck-init-bootstrap ()
   ;; download bootstrap file from server
   (interactive)
-  (when (file--not-exist cake-bootstrap-name)
-    (message (format "loading %s" cake-bootstrap-url))
-    (shell-command (format "curl -Lsfo %s %s" cake-bootstrap-name cake-bootstrap-url))
-    (message (format "download %s success" cake-bootstrap-url))))
+  (when (ck-file-not-exist ck-bootstrap-name)
+    (message (format "loading %s" ck-bootstrap-url))
+    (shell-command (format "curl -Lsfo %s %s" ck-bootstrap-name ck-bootstrap-url))
+    (message (format "download %s success" ck-bootstrap-url))))
 
-(defun show-cake-tasks (tasks)
+(defun ck-show-tasks (tasks)
   ;; display list of available tasks
   (interactive)
   (completing-read "Target:" tasks nil t))
 
-(defun get-cake-tasks(file)
+(defun ck-get-tasks(file)
   (mapcar (lambda (x) (nth 1 x))
           (s-match-strings-all "Task(\"\\(.*\\)\")" (f-read-text file))))
 
-(defun get--cake-tasks-with-grep ()
-  ;; read list of tasks from build script
-  ;; grep -o 'Task(".*")' build.cake | sed 's/[Task("|")]//g'"
+(defun ck-start-execute (name)
+  (print name))
+
+(defun ck-select-task ()
   (interactive)
-  (setq command "grep -o 'Task(\".*\")' build.cake | sed 's/Task(\"//g; s/\")//g'")
-  (mapcar 'string-trim (split-string
-                        (string-trim (shell-command-to-string command))
-                        "\n")))
+  (ck-start-execute
+   (ck-show-tasks
+    (ck-get-tasks (ck-get-dot-location)))))
+
+(defun ck-after-save-action()
+  (progn
+    (message "Reload dot location")
+    (when (eq major-mode 'csharp-mode)
+      (ck-update-dot-location))
+    (when (eq major-mode 'fsharp-mode))
+      (ck-update-dot-location)))
+
+(add-hook 'after-save-hook 'ck-after-save-action)
 
 (provide 'cake-mode)
 
