@@ -26,13 +26,10 @@
 
 ;;; Code:
 
-(require 'cl)
-(require 'json)
-(require 'url)
 
-(defgroup cake-mode nil
-  :link '(url-link "https://github.com/wk-j/cake-mode")
-  :group 'languages)
+;;(defgroup cake-mode nil
+;;  :link '(url-link "https://github.com/wk-j/cake-mode")
+;;  :group 'languages)
 
 (setq ck-build-name "build.cake")
 (setq ck-bootstrap-name "build.sh")
@@ -82,7 +79,6 @@
     (message (format "download %s success" ck-bootstrap-url))))
 
 (defun ck-show-tasks (tasks)
-  ;; display list of available tasks
   (interactive)
   (completing-read "Target:" tasks nil t))
 
@@ -93,8 +89,8 @@
 (defun ck-start-execute (name)
   (interactive)
   (progn
-    (process-send-string "*terminal*" (concat "cd " ck-dot-location "\n"))
-    (process-send-string "*terminal*" (concat "./build.sh --target " name "\n"))))
+    (process-send-string "*shell*" (concat "cd " ck-dot-location "\n"))
+    (process-send-string "*shell*" (concat "./build.sh --target " name "\n"))))
 
 (defun ck-select-task ()
   (interactive)
@@ -110,7 +106,19 @@
     (when (eq major-mode 'fsharp-mode))
       (ck-update-dot-location)))
 
+
+(defun ck-open-shell()
+  (interactive)
+  (progn
+    (split-window-right)
+    (shell)))
+
 (add-hook 'after-save-hook 'ck-after-save-action)
+;;(global-set-key (kbd "SPC-e-t") 'ck-select-task)
+;;(spacemacs/set-leader-keys "e-t" 'ck-select-task)
+;;(spacemacs/declare-prefix "et" 'ck-select-task)
+(spacemacs/set-leader-keys "ec" 'ck-select-task)
+(spacemacs/set-leader-keys "ew" 'ck-open-shell)
 
 (provide 'cake-mode)
 
