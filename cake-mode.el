@@ -31,7 +31,6 @@
 (require 'url)
 
 (defgroup cake-mode nil
-  "Cake Build major mode"
   :link '(url-link "https://github.com/wk-j/cake-mode")
   :group 'languages)
 
@@ -40,8 +39,6 @@
 (setq ck-bootstrap-url "http://cakebuild.net/download/bootstrapper/osx")
 (setq ck-backend-url "http://localhost:9876")
 (setq ck-dot-location ".")
-
-
 (setq ck-params '(("currentDir") . "."))
 
 (defun ck-get-current-dir ()
@@ -94,7 +91,10 @@
           (s-match-strings-all "Task(\"\\(.*\\)\")" (f-read-text file))))
 
 (defun ck-start-execute (name)
-  (print name))
+  (interactive)
+  (progn
+    (process-send-string "*terminal*" (concat "cd " ck-dot-location "\n"))
+    (process-send-string "*terminal*" (concat "./build.sh --target " name "\n"))))
 
 (defun ck-select-task ()
   (interactive)
@@ -104,7 +104,7 @@
 
 (defun ck-after-save-action()
   (progn
-    (message "Reload dot location")
+    (message "reload dot location")
     (when (eq major-mode 'csharp-mode)
       (ck-update-dot-location))
     (when (eq major-mode 'fsharp-mode))
