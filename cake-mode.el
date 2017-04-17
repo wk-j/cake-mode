@@ -31,6 +31,8 @@
 ;;  :link '(url-link "https://github.com/wk-j/cake-mode")
 ;;  :group 'languages)
 
+(require 'request)
+
 (setq ck-build-name "build.cake")
 (setq ck-bootstrap-name "build.sh")
 (setq ck-bootstrap-url "http://cakebuild.net/download/bootstrapper/osx")
@@ -114,10 +116,7 @@
     (shell)))
 
 (add-hook 'after-save-hook 'ck-after-save-action)
-;;(global-set-key (kbd "SPC-e-t") 'ck-select-task)
-;;(spacemacs/set-leader-keys "e-t" 'ck-select-task)
-;;(spacemacs/declare-prefix "et" 'ck-select-task)
-(spacemacs/set-leader-keys "ec" 'ck-select-task)
+(spacemacs/set-leader-keys "et" 'ck-select-task)
 (spacemacs/set-leader-keys "ew" 'ck-open-shell)
 
 (provide 'cake-mode)
